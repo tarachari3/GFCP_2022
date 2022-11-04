@@ -97,7 +97,7 @@ def preprocess(vlm, nGene=2000, sim=False, meta=None, filter=True, sz_normalize=
     return
 
 
-def makeEmbeds(vlm, embeds, x_name="S_norm", new_pca=True):
+def makeEmbeds(vlm, embeds, x_name="S_norm", new_pca=True, embed_neigh=15):
     '''
     Save embedding objects in embeds lists in vlm
     
@@ -121,10 +121,10 @@ def makeEmbeds(vlm, embeds, x_name="S_norm", new_pca=True):
         # vlm.ps = np.array(vlm.PCA[:,:2], order="C")
         
     if 'UMAP' in embeds:
-        vlm.us = umap.UMAP(n_components=2).fit_transform(vlm.pcs[:, :25])
+        vlm.us = umap.UMAP(n_components=2,n_neighbors=embed_neigh).fit_transform(vlm.pcs[:, :25])
         
     if 'tSNE' in embeds:
-        vlm.ts = TSNE(n_components=2).fit_transform(vlm.pcs[:, :25])
+        vlm.ts = TSNE(n_components=2,perplexity=embed_neigh).fit_transform(vlm.pcs[:, :25])
 
     if "default" in embeds:
         vlm.perform_PCA(which=x_name) # default add attr pca and pcs
@@ -210,7 +210,7 @@ def SimArrowPlots(vlm,meta=None,ax=None,quiver_scale=5):
 
 
 def gridArrowPlots(vlm,Trans,embed,sim=False,meta=None,ax=None,legend=True,quiver_scale=5,title=True,plot_baseline=True,
-    steps=(10, 10), n_neighbors=100):
+    steps=(10, 10), n_neighbors=100, embed_neigh=15):
     '''
     Plot arrow embeddings for vlm data with defined count transformations
     
@@ -224,7 +224,7 @@ def gridArrowPlots(vlm,Trans,embed,sim=False,meta=None,ax=None,legend=True,quive
     '''
     if not hasattr(vlm,"delta_S"):
         getImputed(vlm, knn_k=50)
-    makeEmbeds(vlm, embeds=embed, x_name='S_norm', new_pca=False)
+    makeEmbeds(vlm, embeds=embed, x_name='S_norm', new_pca=False, embed_neigh=embed_neigh)
     emb=emb_dict[embed]
     if ax is None:
         fig,ax=plt.subplots(1,1)
